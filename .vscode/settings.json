@@ -1,0 +1,13 @@
+{
+    "terminal.integrated.defaultProfile.windows": "Zephyr IDE Terminal",
+    "cmake.sourceDirectory": "C:/Users/eder_/OneDrive/Documentos/workspaces/zephyr-pico/teste_zephyr",
+    "git.ignoreLimitWarning": true,
+    "C_Cpp.default.compileCommands": "${workspaceFolder}\\.vscode\\compile_commands.json",
+    "cmake.configureOnOpen": false,
+    "files.associations": {
+        "iostream": "cpp",
+        "ostream": "cpp",
+        "thread": "cpp",
+        "stop_token": "cpp"
+    }
+}

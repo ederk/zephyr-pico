@@ -1,0 +1,57 @@
+{
+  "projects": {
+    "usahusahusa": {
+      "rel_path": "usahusahusa",
+      "name": "usahusahusa",
+      "buildConfigs": {
+        "build\\rp2040_zero": {
+          "relBoardSubDir": "waveshare\\rp2040_zero",
+          "board": "rp2040_zero",
+          "name": "build\\rp2040_zero",
+          "westBuildArgs": "",
+          "westBuildCMakeArgs": " -DCONFIG_DEBUG_OPTIMIZATIONS=y -DCONFIG_DEBUG_THREAD_INFO=y ",
+          "confFiles": {
+            "config": [],
+            "extraConfig": [],
+            "overlay": [],
+            "extraOverlay": []
+          },
+          "runnerConfigs": {
+            "default": {
+              "runner": "default",
+              "name": "default",
+              "args": ""
+            }
+          }
+        },
+        "build\\rpi_pico2\\rp2350a\\m33\\w": {
+          "relBoardSubDir": "raspberrypi\\rpi_pico2",
+          "board": "rpi_pico2/rp2350a/m33/w",
+          "name": "build\\rpi_pico2\\rp2350a\\m33\\w",
+          "westBuildArgs": "",
+          "westBuildCMakeArgs": " -DCONFIG_DEBUG_OPTIMIZATIONS=y -DCONFIG_DEBUG_THREAD_INFO=y ",
+          "confFiles": {
+            "config": [],
+            "extraConfig": [],
+            "overlay": [],
+            "extraOverlay": []
+          },
+          "runnerConfigs": {
+            "uf2": {
+              "runner": "uf2",
+              "name": "uf2",
+              "args": ""
+            }
+          }
+        }
+      },
+      "twisterConfigs": {},
+      "confFiles": {
+        "config": [],
+        "extraConfig": [],
+        "overlay": [],
+        "extraOverlay": []
+      }
+    }
+  }
+}
