@@ -18,12 +18,6 @@
 #include <errno.h>
 #include <stdio.h>
 
-/* Defina stacks estáticos alinhados */
-K_THREAD_STACK_DEFINE(task_stack, 4096);
-#ifdef CONFIG_LED_STRIP
-K_THREAD_STACK_DEFINE(led_stack, 2048);
-#endif
-
 /* Converte HSV para RGB */
 static void hsv_to_rgb(uint16_t hue, uint8_t saturation, uint8_t value, struct led_rgb *rgb)
 {
@@ -70,14 +64,18 @@ void *led_thread(void *arg)
 
     printk("Thread LED: arco-íris iniciado\n");
 
-    struct led_rgb pixel;
+    struct led_rgb pixel[16];
     uint16_t hue = 0;
 
     while (1) {
-        hsv_to_rgb(hue, 100, 30, &pixel);
-        led_strip_update_rgb(strip, &pixel, 1);
-        hue = (hue + 1) % 360;
-        usleep(10000);
+
+        for (int i = 0; i < 16; i++) {
+            hue = (hue + 1) % 360;
+            hsv_to_rgb(hue, 80, 4, &pixel[i]);
+        }
+        led_strip_update_rgb(strip, pixel, 16);
+
+        usleep(50000);
     }
 
     return NULL;
@@ -103,7 +101,6 @@ static void *task_thread(void *arg)
 int main(void)
 {
     int ret;
-    int prio;
     struct sched_param param;
 
     k_sleep(K_MSEC(5000));
@@ -119,78 +116,26 @@ int main(void)
     pthread_attr_t led_attr;
 #endif
 
-    /* Task thread attrs + stack (note: stackaddr first, then size) */
+    // Task: atributos sem stack explícita
     ret = pthread_attr_init(&task_attr);
-    if (ret != 0) {
-        printk("ERRO pthread_attr_init: %d\n", ret);
-        return -1;
-    }
-
-    ret = pthread_attr_setstack(&task_attr,
-                                (void *)task_stack,
-                                K_THREAD_STACK_SIZEOF(task_stack)); /* CORRETO: addr, size */
-    if (ret != 0) {
-        printk("ERRO pthread_attr_setstack task: %d\n", ret);
-        return -1;
-    }
-
-    ret = pthread_attr_setschedpolicy(&task_attr, SCHED_FIFO);
-    if (ret != 0) {
-        printk("ERRO pthread_attr_setschedpolicy task: %d\n", ret);
-        return -1;
-    }
-
+    if (ret) { printk("ERRO pthread_attr_init: %d\n", ret); return -1; }
+    pthread_attr_setstacksize(&task_attr, 4096);
+    pthread_attr_setschedpolicy(&task_attr, SCHED_FIFO);
     param.sched_priority = 3;
-    ret = pthread_attr_setschedparam(&task_attr, &param);
-    if (ret != 0) {
-        printk("ERRO pthread_attr_setschedparam task: %d\n", ret);
-        return -1;
-    }
-
+    pthread_attr_setschedparam(&task_attr, &param);
     ret = pthread_create(&task_tid, &task_attr, task_thread, NULL);
-    if (ret != 0) {
-        printk("ERRO pthread_create Task: %d\n", ret);
-        return -1;
-    }
+    if (ret) { printk("ERRO pthread_create Task: %d\n", ret); return -1; }
 
 #ifdef CONFIG_LED_STRIP
-    /* LED thread attrs + stack */
+    // LED: atributos sem stack explícita
     ret = pthread_attr_init(&led_attr);
-    if (ret != 0) {
-        printk("ERRO pthread_attr_init led: %d\n", ret);
-        return -1;
-    }
-
-    ret = pthread_attr_setstack(&led_attr,
-                                (void *)led_stack,
-                                K_THREAD_STACK_SIZEOF(led_stack)); /* CORRETO: addr, size */
-    if (ret != 0) {
-        printk("ERRO pthread_attr_setstack led: %d\n", ret);
-        return -1;
-    }
-
-    ret = pthread_attr_setschedpolicy(&led_attr, SCHED_FIFO);
-    if (ret != 0) {
-        printk("ERRO pthread_attr_setschedpolicy led: %d\n", ret);
-        return -1;
-    }
-
+    if (ret) { printk("ERRO pthread_attr_init led: %d\n", ret); return -1; }
+    pthread_attr_setstacksize(&led_attr, 2048);
+    pthread_attr_setschedpolicy(&led_attr, SCHED_FIFO);
     param.sched_priority = 5;
-    ret = pthread_attr_setschedparam(&led_attr, &param);
-    if (ret != 0) {
-        printk("ERRO pthread_attr_setschedparam led: %d\n", ret);
-        return -1;
-    }
-
+    pthread_attr_setschedparam(&led_attr, &param);
     ret = pthread_create(&led_tid, &led_attr, led_thread, NULL);
-    if (ret != 0) {
-        printk("ERRO pthread_create LED: %d\n", ret);
-        return -1;
-    }
-
-    printk("Thread LED criada (verifica se dispositivo está pronto)\n");
-#else
-    printk("Board sem LED strip configurado - thread LED não criada\n");
+    if (ret) { printk("ERRO pthread_create LED: %d\n", ret); return -1; }
 #endif
 
     printk("Threads POSIX iniciadas com sucesso\n");
