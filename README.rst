@@ -1,33 +1,56 @@
-.. zephyr:code-sample:: hello_cpp_world
-   :name: Hello C++ world
-
-   Print "Hello World" to the console in C++.
+Zephyr Embedded Project Code Base
+#################################
 
 Overview
 ********
 
-A simple :ref:`C++ <language_cpp>` sample that can be used with many supported board and prints
-"Hello, C++ world!" to the console.
+This repository is a **Zephyr-based firmware code base** for embedded processing
+units (microcontrollers), with focus on real hardware targets and LED strip
+control.
 
-Building and Running
+The project is structured to keep application logic generic while isolating
+board-specific configuration in dedicated files.
+
+Main Characteristics
 ********************
 
-This configuration can be built and executed on QEMU as follows:
+- C/C++ application on Zephyr RTOS
+- POSIX-thread based task orchestration
+- WS2812 LED strip support via DeviceTree
+- Multi-board organization (for example RP2040 family targets)
 
-.. zephyr-app-commands::
-   :zephyr-app: samples/cpp/hello_world
-   :host-os: unix
-   :board: qemu_riscv32
-   :goals: run
-   :compact:
+Project Layout
+**************
 
-To build for another board, change "qemu_riscv32" above to that board's name.
+- ``application/src``: main application sources
+- ``application/inc``: public headers
+- ``application/boards``: board-specific ``.conf`` and ``.overlay`` files
+- ``application/prj.conf``: common Zephyr configuration
 
-Sample Output
-=============
+Build (Real Board)
+******************
+
+Example build for RP2040 Zero:
 
 .. code-block:: console
 
-    Hello C++, world! qemu_riscv32
+   west build application -b rp2040_zero --build-dir application/build/rp2040_zero
 
-Exit QEMU by pressing :kbd:`CTRL+C`
+Example build for Raspberry Pi Pico 2:
+
+.. code-block:: console
+
+   west build application -b rpi_pico2/rp2350a --build-dir application/build/rpi_pico2
+
+Flash (UF2 runner)
+******************
+
+.. code-block:: console
+
+   west flash --build-dir application/build/rp2040_zero -r uf2
+
+Notes
+*****
+
+- This documentation intentionally removes QEMU-focused instructions.
+- The intended workflow is build/flash on physical MCU targets.
