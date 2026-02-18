@@ -1,8 +1,8 @@
 {
   "projects": {
-    "usahusahusa": {
-      "rel_path": "usahusahusa",
-      "name": "usahusahusa",
+    "application": {
+      "rel_path": "application",
+      "name": "application",
       "buildConfigs": {
         "build\\rp2040_zero": {
           "relBoardSubDir": "waveshare\\rp2040_zero",
@@ -17,9 +17,9 @@
             "extraOverlay": []
           },
           "runnerConfigs": {
-            "default": {
-              "runner": "default",
-              "name": "default",
+            "uf2": {
+              "runner": "uf2",
+              "name": "uf2",
               "args": ""
             }
           }
@@ -36,13 +36,7 @@
             "overlay": [],
             "extraOverlay": []
           },
-          "runnerConfigs": {
-            "uf2": {
-              "runner": "uf2",
-              "name": "uf2",
-              "args": ""
-            }
-          }
+          "runnerConfigs": {}
         }
       },
       "twisterConfigs": {},
