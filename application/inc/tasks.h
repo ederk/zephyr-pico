@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <zephyr/kernel.h>
 #include <zephyr/posix/pthread.h>
 
 /**
@@ -21,8 +22,6 @@ struct TaskSpec {
     const char* name;
     /** POSIX thread entry function. */
     void* (*entry)(void*);
-    /** Stack size in bytes. */
-    int stack;
     /** Scheduler priority (for example with `SCHED_FIFO`). */
     int prio;
     /** POSIX scheduler policy (for example `SCHED_FIFO`). */
@@ -38,7 +37,7 @@ struct TaskHandle {
     /** Task name copied from `TaskSpec::name`. */
     const char* name;
     /** POSIX thread identifier returned by `pthread_create()`. */
-    pthread_t tid{};
+    pthread_t tid;
 };
 
 

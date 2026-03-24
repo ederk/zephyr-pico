@@ -23,8 +23,9 @@
  *
  * Responsibilities:
  * - Receive task definitions from application layer (`main.cpp`).
- * - Configure POSIX pthread attributes.
- * - Create enabled tasks and keep minimal runtime handles.
+ * - Create POSIX threads with `pthread_create(..., NULL, ...)`.
+ * - Apply scheduling with `pthread_setschedparam()` after creation.
+ * - Keep minimal runtime handles.
  */
 
 static constexpr int TASKS_MAX = 8;
@@ -40,18 +41,24 @@ static bool g_started = false;
  */
 static int create_thread(const TaskSpec& spec, pthread_t* tid)
 {
-    pthread_attr_t attr;
     struct sched_param param;
-    int ret = pthread_attr_init(&attr);
-    if (ret) return ret;
+    int ret = pthread_create(tid, NULL, spec.entry, nullptr);
+    if (ret != 0) {
+        return ret;
+    }
 
-    pthread_attr_setstacksize(&attr, spec.stack);
-    pthread_attr_setschedpolicy(&attr, spec.policy);
     param.sched_priority = spec.prio;
-    pthread_attr_setschedparam(&attr, &param);
+    ret = pthread_setschedparam(*tid, spec.policy, &param);
+    if (ret != 0) {
+        return ret;
+    }
 
-    ret = pthread_create(tid, &attr, spec.entry, nullptr);
-    pthread_attr_destroy(&attr);
+#if defined(CONFIG_THREAD_NAME)
+    if (spec.name != nullptr) {
+        (void)pthread_setname_np(*tid, spec.name);
+    }
+#endif
+
     return ret;
 }
 
@@ -85,8 +92,15 @@ int TASKS_Init(const TaskSpec* specs, int spec_count)
             continue;
         }
 
+        if (specs[i].entry == nullptr)
+        {
+            printk("Fail to create thread '%s': entry nula\n",
+                   (specs[i].name != nullptr) ? specs[i].name : "(null)");
+            return -EINVAL;
+        }
+
         const int ret = create_thread(specs[i], &g_handles[g_created].tid);
-        if (ret != 0) 
+        if (ret != 0)
         {
             printk("Fail to create thread '%s': %d\n", specs[i].name, ret);
             return -ret;

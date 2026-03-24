@@ -86,7 +86,8 @@ static void *led_thread(void *arg)
     struct led_rgb pixel[LED_STRIP_PIXELS];
     uint32_t hue = 0;
 
-    while (1) {
+    while (1) 
+    {
 
         for (int i = 0; i < LED_STRIP_PIXELS; i++) {
             hue = (hue + 1) % 360;
