@@ -13,6 +13,7 @@
  *****************************************************************************************************/
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/led_strip.h>
+#include <zephyr/drivers/adc.h>
 #include <zephyr/device.h>
 #include <zephyr/sys/printk.h>
 #include <zephyr/devicetree.h>
@@ -101,6 +102,57 @@ static void *led_thread(void *arg)
     return NULL;
 }
 #endif
+ 
+/******************************************************************************************************
+ * ADC Task Section
+ *****************************************************************************************************/
+
+#ifdef CONFIG_ADC
+
+static const struct adc_dt_spec adc_ch0 =
+    ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
+
+static void *adc_thread(void *arg)
+{
+    (void)arg;
+
+    if (!adc_is_ready_dt(&adc_ch0)) {
+        printk("ADC device not ready\n");
+        return NULL;
+    }
+
+    int ret = adc_channel_setup_dt(&adc_ch0);
+    if (ret < 0) {
+        printk("ADC channel setup failed: %d\n", ret);
+        return NULL;
+    }
+
+    printk("ADC thread started (ch%d, %d-bit)\n",
+           adc_ch0.channel_id, adc_ch0.resolution);
+
+    int16_t buf;
+    struct adc_sequence seq = {
+        .buffer      = &buf,
+        .buffer_size = sizeof(buf),
+    };
+    adc_sequence_init_dt(&adc_ch0, &seq);
+
+    while (1) {
+        ret = adc_read_dt(&adc_ch0, &seq);
+        if (ret < 0) {
+            printk("ADC read error: %d\n", ret);
+        } else {
+            int32_t mv = buf;
+            adc_raw_to_millivolts_dt(&adc_ch0, &mv);
+            printk("ADC ch%d: raw=%d  %d mV\n",
+                   adc_ch0.channel_id, buf, (int)mv);
+        }
+        usleep(500000); /* 500 ms */
+    }
+
+    return NULL;
+}
+#endif /* CONFIG_ADC */
 
 /******************************************************************************************************
  * Application Section
@@ -108,7 +160,10 @@ static void *led_thread(void *arg)
 
 static const TaskSpec g_task_specs[] = {
 #ifdef CONFIG_LED_STRIP
-    { "led",  &led_thread,  2048, 5, SCHED_FIFO, true },
+    { "led",  &led_thread,  5, SCHED_FIFO, true },
+#endif
+#ifdef CONFIG_ADC
+    { "adc",  &adc_thread,  5, SCHED_FIFO, true },
 #endif
 };
 
