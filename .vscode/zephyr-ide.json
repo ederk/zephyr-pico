@@ -36,7 +36,13 @@
             "overlay": [],
             "extraOverlay": []
           },
-          "runnerConfigs": {}
+          "runnerConfigs": {
+            "uf2": {
+              "runner": "uf2",
+              "name": "uf2",
+              "args": ""
+            }
+          }
         }
       },
       "twisterConfigs": {},

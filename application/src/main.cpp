@@ -25,10 +25,10 @@
 
 
 /******************************************************************************************************
- * Led Task Section
+ * LED Task Section
  *****************************************************************************************************/
 
-/** Define of LED strip pixels */
+/** Number of LED strip pixels. */
  #ifdef CONFIG_LED_STRIP
 
 #if defined(CONFIG_BOARD_RP2040_ZERO)
@@ -39,7 +39,7 @@
     #define LED_STRIP_PIXELS 0
 #endif
 
-/* Converte HSV para RGB */
+/* Convert HSV to RGB */
 static void hsv_to_rgb(uint16_t hue, uint8_t saturation, uint8_t value, struct led_rgb *rgb)
 {
     uint8_t region, remainder, p, q, t;
@@ -78,12 +78,12 @@ static void *led_thread(void *arg)
 
     const struct device *strip = DEVICE_DT_GET(DT_NODELABEL(ws2812));
     if (!device_is_ready(strip)) {
-        printk("LED strip not ready - thread LED não iniciada\n");
+        printk("LED strip not ready — LED thread not started\n");
         return NULL;
     }
 
-    printk("Thread LED: arco-íris iniciado\n");
-
+    printk("LED thread: rainbow started\n");
+    
     struct led_rgb pixel[LED_STRIP_PIXELS];
     uint32_t hue = 0;
 
@@ -109,8 +109,18 @@ static void *led_thread(void *arg)
 
 #ifdef CONFIG_ADC
 
+/** Sampling rate in Hz. */
+#define ADC_FS_HZ       10000
+/** Number of samples captured per async block. */
+#define ADC_BLOCK_SIZE  256
+/** Print stats every N completed blocks. */
+#define ADC_LOG_BLOCKS  4
+
 static const struct adc_dt_spec adc_ch0 =
     ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
+
+/* Ping-pong buffers — DMA fills one while the thread processes the other. */
+static int16_t adc_buf[2][ADC_BLOCK_SIZE];
 
 static void *adc_thread(void *arg)
 {

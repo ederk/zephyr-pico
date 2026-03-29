@@ -30,7 +30,7 @@
 
 static constexpr int TASKS_MAX = 8;
 
-// ----------------- Estate/handles -----------------
+// ----------------- State/handles -----------------
 static TaskHandle g_handles[TASKS_MAX];
 static int  g_created = 0;
 static bool g_started = false;
@@ -65,13 +65,13 @@ static int create_thread(const TaskSpec& spec, pthread_t* tid)
 
 int TASKS_Init(const TaskSpec* specs, int spec_count)
 {
-    /* Idempotent behavior: calling again after success is a no-op. */
+    /* Idempotent behaviour: calling again after success is a no-op. */
     if (g_started) 
     {
         return 0;
     }
 
-    /* Validate arguments from application layer. */
+    /* Validate arguments from the application layer. */
     if ((specs == nullptr) || (spec_count <= 0)) 
     {
         return -EINVAL;
@@ -94,7 +94,7 @@ int TASKS_Init(const TaskSpec* specs, int spec_count)
 
         if (specs[i].entry == nullptr)
         {
-            printk("Fail to create thread '%s': entry nula\n",
+            printk("Failed to create thread '%s': null entry\n",
                    (specs[i].name != nullptr) ? specs[i].name : "(null)");
             return -EINVAL;
         }
@@ -102,7 +102,7 @@ int TASKS_Init(const TaskSpec* specs, int spec_count)
         const int ret = create_thread(specs[i], &g_handles[g_created].tid);
         if (ret != 0)
         {
-            printk("Fail to create thread '%s': %d\n", specs[i].name, ret);
+            printk("Failed to create thread '%s': %d\n", specs[i].name, ret);
             return -ret;
         }
 
