@@ -7,4 +7,8 @@ project(application)
 
 target_include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc)
 
-target_sources(app PRIVATE src/main.cpp src/tasks.cpp)
+file(GLOB_RECURSE APP_SOURCES CONFIGURE_DEPENDS
+    src/*.c
+    src/*.cpp
+)
+target_sources(app PRIVATE ${APP_SOURCES})
