@@ -28,6 +28,8 @@ struct TaskSpec {
     int policy;
     /** Enables/disables task creation for this entry. */
     bool enabled;
+    /** Optional argument forwarded verbatim to the thread entry function. */
+    void *arg;
 };
 
 /**

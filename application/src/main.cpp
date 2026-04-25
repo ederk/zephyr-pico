@@ -34,11 +34,11 @@
 
 static const TaskSpec g_task_specs[] = {
 #ifdef CONFIG_LED_STRIP
-    { "led",  &LED_Thread,  5, SCHED_FIFO, true },
+    { "led",  &LED_Thread,  0, SCHED_FIFO, true },
 #endif
 #ifdef CONFIG_ADC
     { "adc",  &ADC_Thread,  5, SCHED_FIFO, true },
-    { "dsp",  &DSP_Thread,  4, SCHED_FIFO, true },
+    { "dsp",  &DSP_Thread,  4, SCHED_FIFO, true, (void *)&adc_pipe },
 #endif
 };
 
