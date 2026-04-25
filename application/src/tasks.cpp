@@ -42,7 +42,7 @@ static bool g_started = false;
 static int create_thread(const TaskSpec& spec, pthread_t* tid)
 {
     struct sched_param param;
-    int ret = pthread_create(tid, NULL, spec.entry, nullptr);
+    int ret = pthread_create(tid, NULL, spec.entry, spec.arg);
     if (ret != 0) {
         return ret;
     }

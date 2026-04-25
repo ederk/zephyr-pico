@@ -8,54 +8,49 @@
 
 #pragma once
 
-#include <zephyr/kernel.h>
+#include <dsp/input_pipeline.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /******************************************************************************************************
- * Parameters
+ * Acquisition parameters
  *****************************************************************************************************/
 
 /** Sampling rate in Hz. */
-#define ADC_FS_HZ           40000
+#define ADC_FS_HZ      40000
 /** Block duration in milliseconds. */
-#define ADC_BLOCK_MS        5
-/** Number of samples per async block — derived from rate and duration. */
-#define ADC_BLOCK_SIZE      (ADC_FS_HZ * ADC_BLOCK_MS / 1000)
-/** Print statistics every N completed blocks. */
-#define ADC_LOG_BLOCKS  4
+#define ADC_BLOCK_MS   10
+/** Number of samples per async block (derived from rate and duration). */
+#define ADC_BLOCK_SIZE (ADC_FS_HZ * ADC_BLOCK_MS / 1000)
 
 /******************************************************************************************************
  * Inter-thread queues (zero-copy buffer handoff)
  *****************************************************************************************************/
 
-/**
- * @brief Queue of filled buffers sent from ADC_Thread to DSP_Thread.
- *        Each element is a int16_t* pointing to ADC_BLOCK_SIZE samples.
- */
+/** Queue of filled buffers — posted by ADC_Thread, consumed by the DSP consumer. */
 extern struct k_msgq adc_filled_q;
+/** Queue of free buffers — returned by the DSP consumer, recycled by ADC_Thread. */
+extern struct k_msgq adc_free_q;
 
 /**
- * @brief Queue of free buffers returned from DSP_Thread to ADC_Thread.
- *        Each element is a int16_t* ready to be refilled.
+ * @brief SamplePipe descriptor for the ADC source.
+ *
+ * Pass as the @p arg of DSP_Thread (or any other consumer) to wire it to this
+ * producer.  To connect a different source, define and pass its own SamplePipe.
  */
-extern struct k_msgq adc_free_q;
+extern const SamplePipe adc_pipe;
 
 /******************************************************************************************************
  * Public API
  *****************************************************************************************************/
 
 /**
- * @brief POSIX thread entry that runs the ADC async ping-pong acquisition.
+ * @brief POSIX thread entry for ADC async ping-pong acquisition.
  *
- * Collects ADC_BLOCK_SIZE samples at ADC_FS_HZ using two alternating DMA
- * buffers (ping-pong). While the hardware fills one buffer via adc_read_async,
- * the thread processes the previous buffer, minimising dead time between blocks.
- *
- * Intended to be registered as a TaskSpec::entry in the application task table.
- * Loops forever; does not return under normal operation.
+ * Collects ADC_BLOCK_SIZE samples at ADC_FS_HZ using two alternating ping-pong
+ * buffers. Posts filled int16_t* to adc_filled_q and recycles from adc_free_q.
  *
  * @param arg Unused.
  * @return NULL (never reached under normal operation).

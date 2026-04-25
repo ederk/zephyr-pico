@@ -29,3 +29,8 @@
     };
 };
 
+/* Enable the RP2040 DMA controller — required by adc.c (Zephyr DMA API). */
+&dma {
+    status = "okay";
+};
+
